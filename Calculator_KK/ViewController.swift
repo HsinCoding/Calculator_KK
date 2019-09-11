@@ -40,31 +40,24 @@ class ViewController: UIViewController {
     
     var numberArray:[NSObject] = []
     var latestNumberString: String = "0"
-    var tempNumber: Double?
-    var showForAnswer: Double?
+    var lastNumberString: String?
     var methold:CalculatorMethod = .None
+    var memoryNumberString: String?
     
     enum CalculatorMethod {
         case None
         case Add
         case Subtract
         case Multiply
+        case Divide
     }
-    
-    
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.displayLabel.text = "0"
         
-        
-
-
     }
-    
-    
-    
-    
     
     // MARK: Number Action
     
@@ -72,7 +65,6 @@ class ViewController: UIViewController {
       
         self.numberArray.append(NSNumber(value: sender.tag))
         latestNumberString = self.arrayToString(inputArray: self.numberArray)
-        
         self.displayLabel.text = latestNumberString
     }
     
@@ -87,67 +79,108 @@ class ViewController: UIViewController {
     
     @IBAction func numberByAdding(_ sender: Any) {
         
+        lastNumberString = latestNumberString
         methold = .Add
-        tempNumber = self.stringToDouble(inputString: latestNumberString)
         self.numberArray.removeAll()
     }
     
     
     @IBAction func numberBySubtracting(_ sender: Any) {
-        if (tempNumber != nil) {
-            let result =
-                self.subtractingAction(originalNumber: tempNumber!, subtractingNumber: self.stringToDouble(inputString: latestNumberString))
-            tempNumber = result
-          
-        } else {
-            tempNumber = self.stringToDouble(inputString: latestNumberString)
-        }
+        lastNumberString = latestNumberString
+        methold = .Subtract
         self.numberArray.removeAll()
     }
     
     
     @IBAction func numberByMultiplying(_ sender: Any) {
-        if (tempNumber != nil) {
-            let result =
-                self.multiplyingByAction(originalNumber: tempNumber!, multiplyingByNumber: self.stringToDouble(inputString: latestNumberString))
-            tempNumber = result
-           
-        } else {
-            tempNumber = self.stringToDouble(inputString: latestNumberString)
-        }
+        lastNumberString = latestNumberString
+        methold = .Multiply
         self.numberArray.removeAll()
     }
     
     
     @IBAction func numberByDividing(_ sender: Any) {
-        if (tempNumber != nil) {
-            let result =
-                self.dividingByAction(originalNumber: tempNumber!, dividingByNumber: self.stringToDouble(inputString: latestNumberString))
-            tempNumber = result
-            self.displayLabel.text = result.removeZerosFromEnd()
-        } else {
-            tempNumber = self.stringToDouble(inputString: latestNumberString)
-        }
+        lastNumberString = latestNumberString
+        methold = .Divide
         self.numberArray.removeAll()
     }
+    
+    
+    @IBAction func memoryCleaning(_ sender: Any) {
+        memoryNumberString = nil
+
+    }
+    
+    
+    
+    @IBAction func memoryAdding(_ sender: Any) {
+        self.numberArray.removeAll()
+        if memoryNumberString != nil {
+            let result: Double = self.addingAction(originalNumber: self.stringToDouble(inputString: latestNumberString), addingNumber: self.stringToDouble(inputString: memoryNumberString!))
+            latestNumberString = self.doubleToString(inpuDouble: result)
+            self.displayLabel.text = result.removeZerosFromEnd()
+        } else {
+            memoryNumberString = latestNumberString
+        }
+    }
+    
+    @IBAction func memorySubtracting(_ sender: Any) {
+        self.numberArray.removeAll()
+        if memoryNumberString != nil {
+            let result: Double = self.subtractingAction(originalNumber: self.stringToDouble(inputString: latestNumberString), subtractingNumber: self.stringToDouble(inputString: memoryNumberString!))
+            latestNumberString = self.doubleToString(inpuDouble: result)
+            self.displayLabel.text = result.removeZerosFromEnd()
+        } else {
+            memoryNumberString = latestNumberString
+        }
+    }
+    
+    @IBAction func memoryRecall(_ sender: Any) {
+        self.numberArray.removeAll()
+        if memoryNumberString != nil {
+            let result = self.stringToDouble(inputString: memoryNumberString!)
+            self.displayLabel.text = String(result.removeZerosFromEnd())
+        } else {
+             self.displayLabel.text = "0"
+        }
+    }
+    
+    @IBAction func memorySubstitute(_ sender: Any) {
+       memoryNumberString = self.displayLabel.text
+    }
+    
+    
+    @IBAction func clearAction(_ sender: Any) {
+        self.numberArray.removeAll()
+        lastNumberString = "0"
+        self.displayLabel.text = "0"
+    }
+    
     
     
     @IBAction func numberOutput(_ sender: Any) {
         switch methold {
         case .Add :
-            let result = self.addingAction(originalNumber: tempNumber!, addingNumber:  self.stringToDouble(inputString: latestNumberString))
-            tempNumber = result
-            self.displayLabel.text = self.doubleToString(inpuDouble: result)
+            let result: Double = self.addingAction(originalNumber: self.stringToDouble(inputString: lastNumberString!), addingNumber: self.stringToDouble(inputString: latestNumberString))
+            latestNumberString = self.doubleToString(inpuDouble: result)
+            self.displayLabel.text = result.removeZerosFromEnd()
             
+        case .Subtract :
+            let result: Double = self.subtractingAction(originalNumber: self.stringToDouble(inputString: lastNumberString!), subtractingNumber: self.stringToDouble(inputString: latestNumberString))
+            latestNumberString = self.doubleToString(inpuDouble: result)
+            self.displayLabel.text = result.removeZerosFromEnd()
+        case .Multiply :
+            let result: Double = self.multiplyingByAction(originalNumber: self.stringToDouble(inputString: lastNumberString!), multiplyingByNumber: self.stringToDouble(inputString: latestNumberString))
+            latestNumberString = self.doubleToString(inpuDouble: result)
+            self.displayLabel.text = result.removeZerosFromEnd()
             
-        case .Subtract : break
+        case .Divide :
+            let result: Double = self.dividingByAction(originalNumber: self.stringToDouble(inputString: lastNumberString!), dividingByNumber: self.stringToDouble(inputString: latestNumberString))
+            latestNumberString = self.doubleToString(inpuDouble: result)
+            self.displayLabel.text = result.removeZerosFromEnd()
             
-        case .Multiply : break
-            
-        case .None : break
-            
-            
-        default: break
+        default:
+            break
         }
         
     }
@@ -181,7 +214,6 @@ class ViewController: UIViewController {
     func addingAction(originalNumber: Double, addingNumber: Double) -> Double {
         return originalNumber + addingNumber
     }
-    
     
     func subtractingAction(originalNumber: Double, subtractingNumber: Double) -> Double {
         return originalNumber - subtractingNumber
